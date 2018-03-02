@@ -1,0 +1,1 @@
+from app import simple_app as application
