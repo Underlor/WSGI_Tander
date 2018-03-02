@@ -2,6 +2,8 @@ import collections
 import operator
 import re
 
+import settings
+
 operator_lookup_table = {
     '<': operator.lt,
     '>': operator.gt,
@@ -31,17 +33,18 @@ def get_value_by_keystr(keystr, dictionary):
     return dictionary
 
 
-def for_parser(page, context, array=None, arrname=''):
+def for_parser(page, context):
     matches = re.finditer(r"{% *for *(\w*\d*) *in *(\w*\d*) *%}([\s|\S]*?)({% *endfor *%})", page)
     for match in matches:
-        block_text= ''
+        block_text = ''
         if isinstance(get_value_by_keystr(match.group(2), context), collections.Iterable):
             for item in get_value_by_keystr(match.group(2), context):
                 matches_var = re.finditer(r"{{(.+?)}}", match.group(3))
                 block_text += match.group(3)
                 for match_var in matches_var:
                     block_text = re.sub(
-                        r'{{ *%s *}}' % match_var.group(1), str(get_value_by_keystr(''.join(match_var.group(1).strip().split('.')[1:]), item)),block_text )
+                        r"{{ *%s *}}" % match_var.group(1),
+                        str(get_value_by_keystr(''.join(match_var.group(1).strip().split('.')[1:]), item)), block_text)
         page = page.replace(match.group(), block_text)
     return page
 
@@ -87,7 +90,16 @@ def if_parser(page, context):
 def var_parser(page, context):
     matches = re.finditer(r"{{(.+?)}}", page)
     for match in matches:
-        page = re.sub(r'{{ *%s *}}' % match.group(1), str(get_value_by_keystr(match.group(1).strip(), context)), page)
+        page = re.sub(r"{{ *%s *}}" % match.group(1), str(get_value_by_keystr(match.group(1).strip(), context)), page)
+    return page
+
+
+def include_parcer(page, context):
+    matches = re.finditer(r"{% *include * [\'|\"](.*)[\'|\"] *%}", page)
+    for match in matches:
+        with open(settings.GLOBAL_DIR + settings.TEMPLATE_DIR + match.group(1), 'r', encoding="utf-8") as f:
+            print(match.group())
+            page = page.replace(match.group(), f.read())
     return page
 
 
@@ -95,6 +107,7 @@ def template_parser(page, context):
     page = for_parser(page, context)
     page = if_parser(page, context)
     page = var_parser(page, context)
+    page = include_parcer(page, context)
     return page
 
 
@@ -103,10 +116,10 @@ def get_page(request):
         'item': '123',
         'int': 123,
         'list': [[1, 2], [3], [4]],
-        'z': [{'name': 'vasya', 'lase':'baba'}, {'name': 'igor','lase':'aba'}],
+        'z': [{'name': 'vasya', 'lase': 'baba'}, {'name': 'igor', 'lase': 'aba'}],
         'lis': {'4': True, 2: {'hi': 'Hello'}},
     }
-    with open('templates/test.html', 'r') as f:
+    with open('templates/test.html', 'r', encoding="utf-8") as f:
         page = template_parser(f.read(), context)
 
     return page.encode()

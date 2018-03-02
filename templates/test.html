@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    {%include 'header.html'%}
 </head>
 <body>
-    {% for it in z %}
-        <p>{{it.name}} {{it.lase}}</p>
-    {%endfor%}
+{% for it in z %}
+<p>{{it.name}} {{it.lase}}</p>
+{%endfor%}
 </body>
 </html>
