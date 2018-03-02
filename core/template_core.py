@@ -1,3 +1,4 @@
+import collections
 import operator
 import re
 
@@ -31,16 +32,16 @@ def get_value_by_keystr(keystr, dictionary):
 
 
 def for_parser(page, context, array=None, arrname=''):
-    matches = re.finditer(r"{% *for *(\w*\d*) *in *(\w*\d*) *%}(\s*.*\s*){% *endfor *%}", page, re.DOTALL)
+    matches = re.finditer(r"{% *for *(\w*\d*) *in *(\w*\d*) *%}([\s|\S]*?)({% *endfor *%})", page)
     for match in matches:
         block_text = ''
         if isinstance(array, (set, list)) and arrname == match.group(2):
             for item in array:
-                block_text += match.group(3).replace('{{%s}}' % match.group(1), str(item))
+                block_text += re.sub(r'{{ *%s *}}' % match.group(1), str(item), match.group(3))
                 block_text = for_parser(block_text, context, item, match.group(1))
-        else:
+        elif isinstance(get_value_by_keystr(match.group(2), context), collections.Iterable):
             for item in get_value_by_keystr(match.group(2), context):
-                block_text += match.group(3).replace('{{%s}}' % match.group(1), str(item))
+                block_text += re.sub(r'{{ *%s *}}' % match.group(1), str(item), match.group(3))
                 block_text = for_parser(block_text, context, item, match.group(1))
         page = page.replace(match.group(), block_text)
     return page
@@ -84,13 +85,17 @@ def if_parser(page, context):
     return page
 
 
+def var_parser(page, context):
+    matches = re.finditer(r"{{(.+)}}", page)
+    for match in matches:
+        page = re.sub(r'{{ *%s *}}' % match.group(1), str(get_value_by_keystr(match.group(1).strip(), context)), page)
+    return page
+
+
 def template_parser(page, context):
     page = for_parser(page, context)
     page = if_parser(page, context)
-    # vars
-    matches = re.finditer(r"{{(.+)}}", page)
-    for match in matches:
-        page = page.replace('{{%s}}' % match.group(1), str(get_value_by_keystr(match.group(1), context)))
+    page = var_parser(page, context)
     return page
 
 

@@ -1,11 +1,10 @@
 class BaseView(object):
-    context = {}
 
     def get(self, request, *args, **kwargs):
-        self.context = kwargs
+        return kwargs
 
     def post(self, request, *args, **kwargs):
-        pass
+        return kwargs
 
     def view(self, request, *args, **kwargs):
         if request['REQUEST_METHOD'] == 'GET':
