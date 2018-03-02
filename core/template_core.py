@@ -35,14 +35,13 @@ def for_parser(page, context, array=None, arrname=''):
     matches = re.finditer(r"{% *for *(\w*\d*) *in *(\w*\d*) *%}([\s|\S]*?)({% *endfor *%})", page)
     for match in matches:
         block_text = ''
-        if isinstance(array, (set, list)) and arrname == match.group(2):
-            for item in array:
-                block_text += re.sub(r'{{ *%s *}}' % match.group(1), str(item), match.group(3))
-                block_text = for_parser(block_text, context, item, match.group(1))
-        elif isinstance(get_value_by_keystr(match.group(2), context), collections.Iterable):
+        if isinstance(get_value_by_keystr(match.group(2), context), collections.Iterable):
             for item in get_value_by_keystr(match.group(2), context):
-                block_text += re.sub(r'{{ *%s *}}' % match.group(1), str(item), match.group(3))
-                block_text = for_parser(block_text, context, item, match.group(1))
+                matches_var = re.finditer(r"{{(.+)}}", match.group(3))
+                for match_var in matches_var:
+                    block_text += re.sub(
+                        r'{{ *%s *}}' % match_var.group(1), str(get_value_by_keystr(''.join(match_var.group(1).strip().split('.')[1:]), item)), match.group(3))
+                    # block_text = for_parser(block_text, context, item, match.group(1))
         page = page.replace(match.group(), block_text)
     return page
 
@@ -104,6 +103,7 @@ def get_page(request):
         'item': '123',
         'int': 123,
         'list': [[1, 2], [3], [4]],
+        'z': [{'name': 'vasya'}, {'name': 'igor'}],
         'lis': {'4': True, 2: {'hi': 'Hello'}},
     }
     with open('templates/test.html', 'r') as f:
