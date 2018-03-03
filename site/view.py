@@ -6,6 +6,7 @@ class HomeView(BaseView):
     def get(self, request, *args, **kwargs):
         # kwargs = {'home':True}
         kwargs['home'] = True
+        kwargs['test'] = {1: {'q': {'h': 'Hello'}}}
         return super().get(request, *args, **kwargs)
 
 
