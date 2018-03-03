@@ -1,3 +1,5 @@
+import json
+
 from core.sql_core import db
 from core.view_core import BaseView
 
@@ -28,3 +30,9 @@ class StatView(BaseView):
     def get(self, request, *args, **kwargs):
         kwargs['stat'] = True
         return super().get(request, *args, **kwargs)
+
+
+class DeleteComment(BaseView):
+    def post(self, request, *args, **kwargs):
+        data = {'errors': []}
+        return json.dumps(data)

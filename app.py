@@ -7,11 +7,11 @@ from project_core import settings
 def app(environ, start_response):
     page = get_page(environ)
     if not page:
-        page = page_not_found().encode()
+        page = page_not_found()
         start_response('404 Not Found', [('Content-type', 'text/html')])
     else:
         start_response('200 OK', [('Content-type', 'text/html')])
-    return [page]
+    return [page.encode()]
 
 
 if __name__ == "__main__":
