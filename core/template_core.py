@@ -1,8 +1,10 @@
 import collections
 import operator
 import re
+from urllib.parse import unquote
 
-import settings
+from project_core import settings
+from project_core.urls import urlpatterns
 
 operator_lookup_table = {
     '<': operator.lt,
@@ -15,8 +17,7 @@ operator_lookup_table = {
 
 
 def get_value_by_keystr(keystr, dictionary):
-    keystr = keystr.split('.')
-    for key in keystr:
+    for key in keystr.split('.'):
         if isinstance(dictionary, dict):
             try:
                 if key in dictionary:
@@ -50,39 +51,13 @@ def for_parser(page, context):
 
 
 def if_parser(page, context):
-    regex = r"{% *if *(\d|\w+) *(==|<=|>=|<|>|\!=)? *(\'?\"?[\d|\w]+\'?\"?)? *%}(\s*.*\s*){% *endif *%}"
+    regex = r"{% *if *(\d|\w+) *(==|<=|>=|<|>|\!=)? *(\'?\"?[\d|\w]+\'?\"?)? *%}([\s|\S]*?){% *endif *%}"
     matches = re.finditer(regex, page)
     for match in matches:
         block_text = ''
         if match.group(2) is None and match.group(3) is None:
             if get_value_by_keystr(match.group(1), context):
                 block_text = match.group(4)
-        else:
-            if match.group(2) in operator_lookup_table:
-                var1 = match.group(1)
-                var2 = match.group(3)
-                if "'" in var1 or '"' in var1:
-                    var1 = var1[1:-1]
-                if "'" in var2 or '"' in var2:
-                    var2 = var2[1:-1]
-
-                if operator_lookup_table[match.group(2)](get_value_by_keystr(var1, context),
-                                                         get_value_by_keystr(var2, context)):
-                    block_text = match.group(4)
-                try:
-                    if operator_lookup_table[match.group(2)](get_value_by_keystr(var1, context), int(var2)):
-                        block_text = match.group(4)
-                    if operator_lookup_table[match.group(2)](int(var1), get_value_by_keystr(var1, context)):
-                        block_text = match.group(4)
-                    if operator_lookup_table[match.group(2)](int(var1), int(var2)):
-                        block_text = match.group(4)
-                except ValueError:
-                    if operator_lookup_table[match.group(2)](get_value_by_keystr(var1, context), var2):
-                        block_text = match.group(4)
-                    if operator_lookup_table[match.group(2)](var1, get_value_by_keystr(var1, context)):
-                        block_text = match.group(4)
-                    if operator_lookup_table[match.group(2)](var1, var2):
-                        block_text = match.group(4)
         page = page.replace(match.group(), block_text)
     return page
 
@@ -94,32 +69,47 @@ def var_parser(page, context):
     return page
 
 
-def include_parcer(page, context):
+def include_parcer(page):
     matches = re.finditer(r"{% *include * [\'|\"](.*)[\'|\"] *%}", page)
     for match in matches:
-        with open(settings.GLOBAL_DIR + settings.TEMPLATE_DIR + match.group(1), 'r', encoding="utf-8") as f:
-            print(match.group())
-            page = page.replace(match.group(), f.read())
+        try:
+            with open(settings.ROOT_DIR + settings.TEMPLATES_DIR + match.group(1), 'r', encoding="utf-8") as f:
+                page = page.replace(match.group(), f.read())
+        except FileNotFoundError:
+            pass
     return page
 
 
 def template_parser(page, context):
+    page = include_parcer(page)
     page = for_parser(page, context)
-    page = if_parser(page, context)
     page = var_parser(page, context)
-    page = include_parcer(page, context)
+    page = if_parser(page, context)
     return page
 
 
-def get_page(request):
-    context = {
-        'item': '123',
-        'int': 123,
-        'list': [[1, 2], [3], [4]],
-        'z': [{'name': 'vasya', 'lase': 'baba'}, {'name': 'igor', 'lase': 'aba'}],
-        'lis': {'4': True, 2: {'hi': 'Hello'}},
-    }
-    with open('templates/test.html', 'r', encoding="utf-8") as f:
-        page = template_parser(f.read(), context)
+def get_template(template_file):
+    with open(settings.ROOT_DIR + settings.TEMPLATES_DIR + template_file, 'r', encoding="utf-8") as file:
+        return file.read()
 
-    return page.encode()
+
+def page_not_found():
+    return get_template('404.html')
+
+
+def get_page(request, *args, **kwargs):
+    if request['QUERY_STRING']:
+        request['GET'] = {}
+        arr = request['QUERY_STRING'].split('&')
+        for element in arr:
+            a = element.split('=')
+            request['GET'][a[0]] = unquote(a[1])
+
+    for url in urlpatterns:
+        matches = re.finditer(url[0], request['PATH_INFO'])
+        for match in matches:
+            if match:
+                kwargs.update(match.groupdict())
+                context = url[1]().view(request, *args, **kwargs)
+                page = template_parser(get_template(url[2]), context)
+                return page.encode()

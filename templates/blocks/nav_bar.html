@@ -1,0 +1,14 @@
+<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse">
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <a class="navbar-brand" href="/">TANDER</a>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link{% if home %} active{% endif %}" href="/">Home</a>
+      <a class="nav-item nav-link{% if comment %} active{% endif %}" href="/comment/">Add Comment</a>
+      <a class="nav-item nav-link{% if view %} active {% endif %}" href="/view/">View Comments</a>
+      <a class="nav-item nav-link{% if stat %} active {% endif %}" href="/stat/">Stats</a>
+    </div>
+  </div>
+</nav>

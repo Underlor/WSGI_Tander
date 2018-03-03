@@ -1,5 +1,4 @@
-class BaseView(object):
-
+class BaseView:
     def get(self, request, *args, **kwargs):
         return kwargs
 
@@ -7,7 +6,8 @@ class BaseView(object):
         return kwargs
 
     def view(self, request, *args, **kwargs):
-        if request['REQUEST_METHOD'] == 'GET':
-            return self.get(request, *args, **kwargs)
-        else:
-            return self.post(request, *args, **kwargs)
+        return self.get(request, *args, **kwargs)
+        # if request['REQUEST_METHOD'] == 'GET':
+        #     return self.get(request, *args, **kwargs)
+        # elif request['REQUEST_METHOD'] == 'POST':
+        #     return self.post(request, *args, **kwargs)

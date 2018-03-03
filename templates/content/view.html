@@ -1,0 +1,34 @@
+<h1>Список комментариев:</h1>
+
+<table class="table">
+    <thead class="thead-inverse">
+    <tr>
+        <th>#</th>
+        <th>Фамилия</th>
+        <th>Имя</th>
+        <th>Отчество</th>
+        <th>Регион</th>
+        <th>Город</th>
+        <th>Контактный телефон</th>
+        <th>E-mail</th>
+        <th>Комментарий</th>
+        <th>Удаление</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for comment in comments %}
+        <tr>
+            <th scope="row">{{comment.id}}</th>
+            <td>{{comment.last_name}}</td>
+            <td>{{comment.first_name}}</td>
+            <td>{{comment.middle_name}}</td>
+            <td>{{comment.region}}</td>
+            <td>{{comment.city}}</td>
+            <td>{{comment.phone}}</td>
+            <td>{{comment.email}}</td>
+            <td>{{comment.text_comment}}</td>
+            <td>X</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

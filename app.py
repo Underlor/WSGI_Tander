@@ -1,13 +1,20 @@
 from wsgiref.simple_server import make_server
 
-from core.template_core import get_page
+from core.template_core import get_page, page_not_found
+from project_core import settings
 
 
-def simple_app(environ, start_response):
-    start_response('200 OK', [('Content-type', 'text/html')])
-    return [get_page(environ)]
+def app(environ, start_response):
+    page = get_page(environ)
+    if not page:
+        page = page_not_found().encode()
+        start_response('404 Not Found', [('Content-type', 'text/html')])
+    else:
+        start_response('200 OK', [('Content-type', 'text/html')])
+    return [page]
 
 
-with make_server('', 8000, simple_app) as httpd:
-    print("Listening on port 8000....")
-    httpd.serve_forever()
+if __name__ == "__main__":
+    with make_server(settings.IP, settings.PORT, app) as httpd:
+        print("Listening on port 8000....")
+        httpd.serve_forever()
