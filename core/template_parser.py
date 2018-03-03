@@ -47,34 +47,35 @@ def for_parser(page, context):
     return page
 
 
-def if_parser(page, context):
+def if_parser(template, context):
     regex = r"{% *if *(\d|\w+) *(==|<=|>=|<|>|\!=)? *(\'?\"?[\d|\w]+\'?\"?)? *%}([\s|\S]*?){% *endif *%}"
-    matches = re.finditer(regex, page)
+    matches = re.finditer(regex, template)
     for match in matches:
         block_text = ''
         if match.group(2) is None and match.group(3) is None:
             if get_value_by_keystr(match.group(1), context):
                 block_text = match.group(4)
-        page = page.replace(match.group(), block_text)
-    return page
+        template = template.replace(match.group(), block_text)
+    return template
 
 
-def var_parser(page, context):
-    matches = re.finditer(r"{{(.+?)}}", page)
+def var_parser(template, context):
+    matches = re.finditer(r"{{(.+?)}}", template)
     for match in matches:
-        page = re.sub(r"{{ *%s *}}" % match.group(1), str(get_value_by_keystr(match.group(1).strip(), context)), page)
-    return page
+        template = re.sub(r"{{ *%s *}}" % match.group(1), str(get_value_by_keystr(match.group(1).strip(), context)),
+                          template)
+    return template
 
 
-def include_parcer(page):
-    matches = re.finditer(r"{% *include * [\'|\"](.*)[\'|\"] *%}", page)
+def include_parcer(template, context):
+    matches = re.finditer(r"{% *include * [\'|\"](.*)[\'|\"] *%}", template)
     for match in matches:
-        page = page.replace(match.group(), get_template(match.group(1)))
-    return page
+        template = if_parser(template.replace(match.group(), get_template(match.group(1))), context)
+    return template
 
 
 def template_parser(page, context):
-    page = include_parcer(page)
+    page = include_parcer(page, context)
     page = for_parser(page, context)
     page = var_parser(page, context)
     page = if_parser(page, context)

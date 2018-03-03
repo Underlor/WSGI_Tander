@@ -4,34 +4,3 @@
     </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script>
-    test_btn.onclick = function () {
-
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/delete/', true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        var data = {
-            'var': 'value'
-        };
-        xhr.send('data=' + JSON.stringify(data));
-
-        xhr.onreadystatechange = function () {
-            if (this.readyState != 4) return;
-
-            var decoded_data = JSON.parse(xhr.responseText);
-            console.log(decoded_data);
-
-
-            if (this.status != 200) {
-                // обработать ошибку
-                alert('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
-                return;
-            }
-
-            // получить результат из this.responseText или this.responseXML
-        }
-    };
-
-</script>
