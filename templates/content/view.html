@@ -1,7 +1,7 @@
+{% if comments %}
 <h1>Список комментариев:</h1>
-
 <table class="table">
-    <thead class="thead-inverse">
+    <thead class="thead-dark">
     <tr>
         <th>#</th>
         <th>Фамилия</th>
@@ -18,7 +18,7 @@
     <tbody>
     {% for comment in comments %}
     <tr>
-        <th scope="row">{{comment.id}}</th>
+        <th scope="row" id="counter">{% counter %}</th>
         <td>{{comment.last_name}}</td>
         <td>{{comment.first_name}}</td>
         <td>{{comment.middle_name}}</td>
@@ -28,51 +28,36 @@
         <td>{{comment.email}}</td>
         <td>{{comment.text_comment}}</td>
         <td><i class="fa fa-trash" style="font-size: 15px;cursor: pointer; border: 2px dashed black" id="remove_comment"
-               value="{{comment.id}}">УДАЛИТЬ</i></td>
+               value="{{comment.id}}" onclick="remove_click(this)">УДАЛИТЬ</i></td>
     </tr>
     {% endfor %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script>
-        remove_comment.onclick = function () {
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('DELETE', '/view/?ala=21', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            var data = {
-                'comment_id': document.getElementById('remove_comment').getAttribute('value')
-            };
-
-            serialize = function (obj, prefix) {
-                var str = [], p;
-                for (p in obj) {
-                    if (obj.hasOwnProperty(p)) {
-                        var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
-                        str.push((v !== null && typeof v === "object") ?
-                            serialize(v, k) :
-                            encodeURIComponent(k) + "=" + encodeURIComponent(v));
-                    }
-                }
-                return str.join("&");
-            };
-            xhr.send(serialize(data));
-
-            xhr.onreadystatechange = function () {
-                if (this.readyState != 4) return;
-                console.log(xhr.responseText)
-//                var decoded_data = JSON.parse(xhr.responseText);
-//                console.log(decoded_data);
-
-
-                if (this.status != 200) {
-                    // обработать ошибку
-                    alert('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
-                    return;
-                }
-
-                // получить результат из this.responseText или this.responseXML
-            }
-        };
-
-    </script>
     </tbody>
 </table>
+<script>
+    function remove_click(btn) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('DELETE', '', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        var data = {
+            'comment_id': btn.getAttribute('value')
+        };
+        xhr.send(serializer(data));
+
+        xhr.onreadystatechange = function () {
+            if (this.readyState != 4) return;
+            if (this.status != 200) {
+                alert('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
+                return;
+            }
+            btn.parentNode.parentNode.remove();
+
+            let counters = document.querySelectorAll('#counter');
+            for (let i = parseInt(btn.parentNode.parentNode.childNodes[1].innerHTML) - 1; i < counters.length; i++) {
+                counters[i].innerHTML = parseInt(counters[i].innerHTML) - 1
+            }
+        }
+    };
+</script>
+{% else %}
+<h1>В базе нет комментариев.</h1>
+{% endif %}

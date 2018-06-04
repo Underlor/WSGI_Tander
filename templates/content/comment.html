@@ -1,1 +1,179 @@
-comment
+<div class="container">
+    <form class="needs-validation" novalidate>
+        <div class="form-row">
+            <div class="col-md-4 mb-3">
+                <label for="last_name">Фамилия</label>
+                <input type="text" class="form-control" id="last_name" placeholder="Фамилия" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="first_name">Имя</label>
+                <input type="text" class="form-control" id="first_name" placeholder="Имя" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="middle_name">Отчество</label>
+                <input type="text" class="form-control" id="middle_name" placeholder="Отчество" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-3 mb-3">
+                <label for="phone">Контактный телефон</label>
+                <input type="text" class="form-control" id="phone" placeholder="Контактный телефон">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="email">Email</label>
+                <input type="text" class="form-control" id="email" placeholder="Email">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="region">Выберите регион</label>
+                <select id="region" class="form-control" onchange="on_region_select()">
+                    {% for region in regions %}
+                    <option region_id="{{region.id}}">{{region.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="city">Выберите город</label>
+                <select id="city" class="form-control">
+                    {% for city in cities %}
+                    <option city_id="{{city.id}}">{{city.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="comment">Комментарий</label>
+            <textarea class="form-control" id="comment" rows="3"></textarea>
+        </div>
+        <div class="alert alert-success" role="alert" id="success" style="display: none">
+            Комментарий успешно добавлен
+        </div>
+        <div class="alert alert-danger" role="alert" id="error" style="display: none">
+            Комментарий добавить не удалось.
+        </div>
+        <button class="btn btn-primary" id="add_comment">Отправить</button>
+    </form>
+</div>
+
+<script>
+
+    function on_region_select() {
+        $('#region').setAttribute('disabled', '');
+        $('#city').setAttribute('disabled', '');
+        $('#add_comment').setAttribute('disabled', '');
+        if ($('#region').options[0].value == "Выберите регион...")
+            $('#region').options[0].remove();
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/getcities/', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        let data = {
+            'region_name': $('#region').value
+        };
+
+        xhr.send(serializer(data));
+        xhr.onreadystatechange = function () {
+            $('#region').removeAttribute('disabled');
+            if (this.readyState != 4) return;
+            if (this.status != 200) {
+                alert('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
+                return;
+            }
+            data = JSON.parse(xhr.responseText);
+            while ($('#city').options.length > 0) {
+                $('#city').options[0].remove()
+            }
+
+            for (let i = 0; i < data.length; i++) {
+                let option = document.createElement('option');
+                option.innerHTML = data[i]['name'];
+                option.setAttribute('city_id', data[i]['id']);
+                $('#city').add(option)
+            }
+            $('#city').removeAttribute('disabled');
+            $('#add_comment').removeAttribute('disabled');
+        };
+
+    }
+
+    $('#add_comment').onclick = function () {
+        let phone = '';
+
+        let errors = false;
+        if (!$('#last_name').value) {
+            $('#last_name').classList.add('is-invalid');
+            errors = true;
+        }
+        else
+            $('#last_name').classList.remove('is-invalid');
+        if (!$('#first_name').value) {
+            $('#first_name').classList.add('is-invalid');
+            errors = true;
+        } else
+            $('#first_name').classList.remove('is-invalid');
+        if (!$('#comment').value) {
+            $('#comment').classList.add('is-invalid');
+            errors = true;
+        }
+        else
+            $('#comment').classList.remove('is-invalid');
+        if ($('#phone').value.length > 0) {
+            let m;
+            const phone_regex = /^((8|\+7)[\- ]?)?\(?(\d{3,5})\)?[\- ]?([\d\- ]{7,10})$/gm;
+
+            while ((m = phone_regex.exec($('#phone').value)) !== null) {
+                if (m.index === phone_regex.lastIndex) {
+                    phone_regex.lastIndex++;
+                }
+                m.forEach((match, groupIndex) => {
+                    if (groupIndex == 3 || groupIndex == 4)
+                        phone += match
+                });
+            }
+            if (!phone) {
+                errors = true;
+                $('#phone').classList.add('is-invalid');
+            }
+            else
+                $('#phone').classList.remove('is-invalid');
+
+        }
+        else $('#phone').classList.remove('is-invalid');
+        if (errors)
+            return false;
+        let data = {
+            'last_name': $('#last_name').value,
+            'first_name': $('#first_name').value,
+            'middle_name': $('#middle_name').value,
+            'phone': phone,
+            'email': $('#email').value,
+            'region': $('#region').options[$('#region').selectedIndex].getAttribute('region_id'),
+            'city': $('#city').options[$('#city').selectedIndex].getAttribute('city_id'),
+            'text_comment': $('#comment').value
+        };
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(serializer(data));
+        xhr.onreadystatechange = function () {
+            if (this.readyState !== 4) return;
+            if (this.status !== 200) {
+                alert('ошибка: ' + (this.status ? this.statusText : 'запрос не удался'));
+                return;
+            }
+            if (JSON.parse(xhr.responseText)['success']) {
+                $('#success').style.display = '';
+                // Reset form
+                $('.needs-validation').reset();
+                on_region_select();
+
+            }
+            else {
+                $('#error').style.display = ''
+            }
+        };
+        return false;
+    }
+
+</script>
+

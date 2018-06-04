@@ -1,11 +1,11 @@
 from wsgiref.simple_server import make_server
 
-from core.template_core import template_render, page_not_found
+from core.template_core import request_processor, page_not_found
 from project_core import settings
 
 
 def app(environ, start_response):
-    response = template_render(environ)
+    response = request_processor(environ)
     if response is None:
         response = page_not_found()
         start_response('404 Not Found', [('Content-type', 'text/html')])

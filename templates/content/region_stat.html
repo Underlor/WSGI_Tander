@@ -1,0 +1,19 @@
+<h1>Статистика по региону "{{region.0.name}}"</h1>
+<table class="table">
+    <thead class="thead-dark">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Город</th>
+        <th scope="col">Количество комментариев</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for city in cities %}
+    <tr>
+        <th scope="row">{% counter %}</th>
+        <td>{{city.name}}</td>
+        <td>{{city.comments_count}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>

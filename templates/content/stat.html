@@ -1,1 +1,23 @@
-stat
+{% if regions %}
+<h1>Статистика по всем регионам</h1>
+<table class="table">
+    <thead class="thead-dark">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Регион</th>
+        <th scope="col">Количество комментариев</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for region in regions %}
+    <tr>
+        <th scope="row">{% counter %}</th>
+        <td><a href="/stat/{{region.id}}/">{{region.name}}</a></td>
+        <td>{{region.comments_count}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <h1>В базе нет регионов количество комментариев в которых больше 5.</h1>
+{% endif %}

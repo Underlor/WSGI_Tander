@@ -1,5 +1,36 @@
 <meta charset="UTF-8">
 <title>Tander TASK</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
-      integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    body {
+        position: relative;
+        padding-bottom: 25px;
+        min-height: 100vh;
+    }
+
+    .copy {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding: 15px;
+    }
+</style>
+<script>
+    let $ = (x) => document.querySelector(x);
+
+    function serializer(data) {
+        var str = [], p;
+        for (p in data) {
+            if (data.hasOwnProperty(p)) {
+                var k = p, v = data[p];
+                str.push((v !== null && typeof v === "object") ?
+                    serialize(v, k) :
+                    encodeURIComponent(k) + "=" + encodeURIComponent(v));
+            }
+        }
+        return str.join("&");
+    }
+</script>

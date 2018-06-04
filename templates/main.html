@@ -3,7 +3,7 @@
 <head>
     {% include 'header.html' %}
 </head>
-<body style="">
+<body>
 {% include 'blocks/nav_bar.html' %}
 
 {% if home %}
@@ -20,6 +20,10 @@
 
 {% if stat %}
 {% include 'content/stat.html' %}
+{% endif %}
+
+{% if region_stat %}
+{% include 'content/region_stat.html' %}
 {% endif %}
 
 {% include 'footer.html' %}
